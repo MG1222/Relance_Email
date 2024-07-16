@@ -1,0 +1,27 @@
+{
+  "email": {
+    "sender_email": "test@test.com",
+    "smtp_server": "mail.test.com",
+    "smtp_port": 587,
+    "login": "test",
+    "password": "-----",
+    "link_calendly": "https://calendly.com/test",
+    "receiver_email_test": "Test@gmail.com"
+  },
+  "email_templates": {
+    "subject": "Sujet pour email ",
+    "body": "Corps de l'email "
+  },
+  "Email 3 mois": {
+    "subject": "Sujet pour email ",
+    "body": "Corps de l'email "
+  },
+  "Email 6 mois": {
+    "subject": "Sujet pour email ",
+    "body": "Corps de l'email "
+  },
+  "Email plus 6 mois": {
+    "subject": "Sujet pour email ",
+    "body": "Corps de l'email "
+  }
+}
