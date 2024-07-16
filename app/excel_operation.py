@@ -20,9 +20,7 @@ class ExcelOperation:
         try:
             wb = openpyxl.load_workbook(file_path)
             sheet = wb.active
-
             repartoire = sheet['A1'].value
-            
             if repartoire != "REPARTOIRE":
                 self.error_messages.add(f"Email manquant ou format incorrect: {file_path}")
                 return False
@@ -38,9 +36,8 @@ class ExcelOperation:
             if info_from_excel:
                 return self.save_extracted_data(info_from_excel)
             else:
-                # Handle the case where invalid dates were found and the user needs to correct them before proceeding
-                messagebox.showerror("Erreur",
-                                     "Des dates invalides ont été trouvées. Veuillez corriger ces erreurs avant de continuer.")
+                self.error_messages.add(f"Erreur lors de l'extraction des informations du fichier: {file_path}, "
+                                        f"verifiez le format des dates.")
                 return False
         return False
     
@@ -61,7 +58,7 @@ class ExcelOperation:
                 raise ValueError("Not all expected headers found.")
             
             extracted_data = []
-            invalid_date_found = False  # Flag to indicate an invalid date was found
+            invalid_date_found = False
             
             for row in sheet.iter_rows(min_row=2, values_only=True):
                 last_name = row[header_indices['NOM']]
@@ -70,7 +67,7 @@ class ExcelOperation:
                 last_interview_raw = row[header_indices['DERNIER ENTRETIEN']]
                 last_interview = self.verify_format_date(last_interview_raw, f"{last_name} {first_name}")
                 if last_interview is None:
-                    invalid_date_found = True  # Set the flag to True if an invalid date is encountered
+                    invalid_date_found = True
                     continue
                 
                 if email is None:
@@ -85,7 +82,7 @@ class ExcelOperation:
                 })
             
             if invalid_date_found:
-                return None  # Return None to indicate the process should not continue
+                return None
             
             return extracted_data
         except Exception as e:
@@ -129,18 +126,14 @@ class ExcelOperation:
     def verify_format_date(self, date, name):
         if isinstance(date, datetime):
             return date.strftime('%d/%m/%y')
-        
         if isinstance(date, str):
-
             match = re.match(r'(\d{1,2})/(\d{1,2})/(\d{2,4})', date)
             if match:
                 day, month, year = match.groups()
-
                 if len(year) == 3:
-                    logging.error(f"Invalid year format in date: {date} for {name}")
+                    logging.error(f"ERROR date form ==== Invalid year format in date: {date} for {name}")
                     return None
                 corrected_date = f'{day}/{month}/{year}'
-                print(corrected_date)
                 return corrected_date
         return None
         

@@ -1,17 +1,11 @@
 import logging
 import os
-import cProfile
-import pstats
-
 from app.app_page_controller import AppPageController
-
 from app.config.create_database import DatabaseInitializer
 
-
+# Create a log file is not exists
 log_dir = "logs"
 log_file = os.path.join(log_dir, "log.log")
-
-
 if not os.path.exists(log_dir):
     os.makedirs(log_dir)
 

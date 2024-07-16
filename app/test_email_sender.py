@@ -27,12 +27,6 @@ class TestEmailSender:
 		self.link_calendly = self.config['email']['link_calendly']
 		self.new_email_text = self.config['email_templates']['body']
 		self.new_email_subject = self.config['email_templates']['subject']
-		self.email_three_text = self.config['Email 3 mois']['body']
-		self.email_three_subject = self.config['Email 3 mois']['subject']
-		self.email_six_text = self.config['Email 6 mois']['body']
-		self.email_six_subject = self.config['Email 6 mois']['subject']
-		self.email_plus_six_text = self.config['Email plus 6 mois']['body']
-		self.email_plus_six_subject = self.config['Email plus 6 mois']['subject']
 	
 	def encode_image_to_base64(self, image_path):
 		try:

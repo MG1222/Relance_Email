@@ -1,3 +1,4 @@
+import webbrowser
 from tkinter import Frame, ttk, messagebox, StringVar, Toplevel, Scrollbar
 import json
 import logging
@@ -54,40 +55,69 @@ class ParametersPage(Frame):
 		self.entries = {}
 		
 		for i, (param_name, default_value) in enumerate(self.config["email"].items()):
-			if param_name == "use_mailhog":
-				label = ttk.Label(self.frame_smtp, text=param_name)
-				label.grid(row=i, column=0, sticky="w", padx=10, pady=5)
-				
-				combobox = ttk.Combobox(self.frame_smtp, values=["True", "False"], width=47)
-				combobox.set(str(default_value))
-				combobox.grid(row=i, column=1, padx=10, pady=5)
-				self.entries[param_name] = combobox
+			label = ttk.Label(self.frame_smtp, text=param_name)
+			label.grid(row=i, column=0, sticky="w", padx=10, pady=5)
+			if param_name == "password":
+				entry = ttk.Entry(self.frame_smtp, width=45, show="*")
+				self.show_password_btn = ttk.Button(self.frame_smtp, text="Afficher",
+				                                    command=lambda e=entry: self.toggle_password_visibility(e))
 			else:
-				label = ttk.Label(self.frame_smtp, text=param_name)
-				label.grid(row=i, column=0, sticky="w", padx=10, pady=5)
-				entry = ttk.Entry(self.frame_smtp, width=50)
-				entry.insert(0, str(default_value))
-				entry.grid(row=i, column=1, padx=10, pady=5)
-				self.entries[param_name] = entry
+				entry = ttk.Entry(self.frame_smtp, width=45)
+			entry.insert(0, str(default_value))
+			entry.grid(row=i, column=1, padx=10, pady=5)
+			self.entries[param_name] = entry
+			if param_name == "password":
+				self.show_password_btn.grid(row=i, column=2)
 		
 		save_button_frame1 = ttk.Button(self.frame_smtp, text="Enregistrer SMTP", command=self.save_settings_smtp)
-		save_button_frame1.grid(row=len(self.config["email"]), column=0, columnspan=2, pady=10)
+		save_button_frame1.grid(row=len(self.config["email"]), column=0, columnspan=3, pady=10)
+	
+	def toggle_password_visibility(self, entry):
+		if entry.cget("show") == "":
+			entry.config(show="*")
+			self.show_password_btn.config(text="Afficher")
+		else:
+			entry.config(show="")
+			self.show_password_btn.config(text="Masquer")
 	
 	def init_test_email(self):
+		try:
+			with open('./config/config_perso.json', 'r') as f:
+				self.config = json.load(f)
+		except FileNotFoundError:
+			messagebox.showerror("Erreur", "Fichier de configuration non trouvé.")
+			self.config = {}
+		
+		self.entries = {}
+		
 		options = list(self.config.keys())[1:]
+		if not options:
+			messagebox.showerror("Erreur", "Aucune option trouvée dans la configuration.")
+			return
+		text = ttk.Label(self.frame_test_email, text="Test envoyer un email ")
+		text.grid(row=0, column=0, padx=10, pady=5)
 		self.selected_test_option.set(options[0])
 		
 		select_menu = ttk.OptionMenu(self.frame_test_email, self.selected_test_option, options[0], *options,
 		                             command=self.update_test_email_label)
-		select_menu.grid(row=1, column=0, padx=10, pady=5)
-		text = ttk.Label(self.frame_test_email, text="Envoyer un email de test à l'adresse email de test")
-		text.grid(row=0, column=0, padx=10, pady=5)
+		select_menu.grid(row=3, column=0, padx=10, pady=5)
 		
-		self.test_email_label = ttk.Label(self.frame_test_email, text="Type d'email de test")
-		self.test_email_label.grid(row=2, column=0, sticky="w", padx=10, pady=5)
+		text = ttk.Label(self.frame_test_email, text="Envoyer a  :")
+		text.grid(row=1, column=0, padx=10, pady=5)
+		
+		self.test_email_entry = ttk.Entry(self.frame_test_email, width=35)
+		self.test_email_entry.grid(row=2, column=0, padx=10, pady=5)
+		
+		# Extract and set the test email address from the config
+		try:
+			receiver_email_test = self.config["email_test"]["receiver_email_test"]
+			self.test_email_entry.insert(0, receiver_email_test)
+		except KeyError:
+			messagebox.showerror("Erreur", "Adresse e-mail de test non trouvée dans la configuration.")
+		
 		send_test_email_button = ttk.Button(self.frame_test_email, text="Envoyer un email de test",
 		                                    command=self.send_test_email)
-		send_test_email_button.grid(row=3, column=0, padx=10, pady=5)
+		send_test_email_button.grid(row=4, column=0, padx=10, pady=5)
 	
 	def init_setting_email(self):
 		options = list(self.config.keys())[1:]

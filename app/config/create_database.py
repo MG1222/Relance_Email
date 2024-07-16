@@ -1,4 +1,3 @@
-# In create_database.py
 import os
 import sqlite3
 import logging
@@ -7,10 +6,10 @@ import sys
 
 class DatabaseInitializer:
 	if getattr(sys, 'frozen', False):
-		# Si l'application est exécutée en tant que .exe compilé
+		# if .exe file
 		application_path = os.path.dirname(sys.executable)
 	else:
-		# Si l'application est exécutée en mode développement (par exemple, via un IDE ou directement depuis le script Python)
+		# local
 		application_path = os.path.dirname(__file__)
 	
 	DB_PATH = os.path.join(application_path, 'bdd', 'db_relance_rh.db')
