@@ -1,7 +1,7 @@
 import logging
 import os
 from app.app_page_controller import AppPageController
-from app.config.create_database import DatabaseInitializer
+
 
 # Create a log file is not exists
 log_dir = "logs"
@@ -15,13 +15,10 @@ logging.basicConfig(filename=log_file, level=logging.INFO,
 logging.warning("=== Starting the application")
 
 
-
 def main():
     try:
         app_page_controller = AppPageController()
         app_page_controller.mainloop()
-        DatabaseInitializer.init_db()
-    
     except Exception as e:
         logging.error(f"Main () === error occured: {e}")
 

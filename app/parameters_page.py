@@ -1,10 +1,8 @@
-import webbrowser
 from tkinter import Frame, ttk, messagebox, StringVar, Toplevel, Scrollbar
 import json
 import logging
 import tkinter as tk
 from tkinter.scrolledtext import ScrolledText
-
 from app.test_email_sender import TestEmailSender
 
 
@@ -12,10 +10,16 @@ class ParametersPage(Frame):
 	def __init__(self, parent, controller, *args, **kwargs):
 		super().__init__(parent, *args, **kwargs)
 		self.emailOpr = TestEmailSender()
+
 		self.controller = controller
 		self.selected_option = StringVar()
 		self.selected_test_option = StringVar()
 		self.controller = controller
+	
+		self.smtp_config = {}
+		self.test_email_config = {}
+		self.email_templates = {}
+		self.test_email_var = tk.StringVar()
 		
 		self.grid_rowconfigure(0, weight=1)
 		self.grid_rowconfigure(1, weight=1)
@@ -32,6 +36,7 @@ class ParametersPage(Frame):
 		self.init_setting_smtp()
 		self.init_test_email()
 		self.init_setting_email()
+
 		
 		self.back_button_frame = ttk.Frame(self, padding=10)
 		self.back_button_frame.grid(row=2, column=0, columnspan=2, pady=10, sticky="ew")
@@ -44,7 +49,20 @@ class ParametersPage(Frame):
 		
 		self.load_data_from_json()
 	
+	def load_config(self):
+		"""Charge la configuration depuis le fichier JSON."""
+		try:
+			with open('./config/config_perso.json', 'r') as f:
+				self.config = json.load(f)
+	
+		except FileNotFoundError:
+			logging.error("Load config error: File not found.")
+		except json.JSONDecodeError:
+			logging.error("Load config error: JSON decode error.")
+
+	
 	def init_setting_smtp(self):
+		self.load_data_from_json()
 		try:
 			with open('./config/config_perso.json', 'r') as f:
 				self.config = json.load(f)
@@ -53,8 +71,9 @@ class ParametersPage(Frame):
 			self.config = {}
 		
 		self.entries = {}
+		self.password_vars = {}  # Pour stocker les StringVar des mots de passe
 		
-		for i, (param_name, default_value) in enumerate(self.config["email"].items()):
+		for i, (param_name, default_value) in enumerate(self.smtp_config.items()):
 			label = ttk.Label(self.frame_smtp, text=param_name)
 			label.grid(row=i, column=0, sticky="w", padx=10, pady=5)
 			if param_name == "password":
@@ -81,50 +100,39 @@ class ParametersPage(Frame):
 			self.show_password_btn.config(text="Masquer")
 	
 	def init_test_email(self):
-		try:
-			with open('./config/config_perso.json', 'r') as f:
-				self.config = json.load(f)
-		except FileNotFoundError:
-			messagebox.showerror("Erreur", "Fichier de configuration non trouvé.")
-			self.config = {}
-		
-		self.entries = {}
-		
-		options = list(self.config.keys())[1:]
-		if not options:
-			messagebox.showerror("Erreur", "Aucune option trouvée dans la configuration.")
-			return
-		text = ttk.Label(self.frame_test_email, text="Test envoyer un email ")
-		text.grid(row=0, column=0, padx=10, pady=5)
+		self.load_data_from_json()
+		options = list(self.email_templates.keys())
+		email = self.test_email_config
+		test_email = email.get('receiver_email_test')
+		self.test_email_var.set(test_email)
+		if options:
+			self.selected_test_option.set(options[0])
 		self.selected_test_option.set(options[0])
 		
-		select_menu = ttk.OptionMenu(self.frame_test_email, self.selected_test_option, options[0], *options,
-		                             command=self.update_test_email_label)
-		select_menu.grid(row=3, column=0, padx=10, pady=5)
+		select_menu = ttk.OptionMenu(self.frame_test_email, self.selected_test_option, options[0], *options)
+		select_menu.grid(row=1, column=0, padx=5, pady=5)
+		text = ttk.Label(self.frame_test_email, text="Envoyer un email de test à l'adresse email de TEST")
+		text.grid(row=0, column=0, padx=5, pady=5)
 		
-		text = ttk.Label(self.frame_test_email, text="Envoyer a  :")
-		text.grid(row=1, column=0, padx=10, pady=5)
-		
-		self.test_email_entry = ttk.Entry(self.frame_test_email, width=35)
-		self.test_email_entry.grid(row=2, column=0, padx=10, pady=5)
-		
-		# Extract and set the test email address from the config
-		try:
-			receiver_email_test = self.config["email_test"]["receiver_email_test"]
-			self.test_email_entry.insert(0, receiver_email_test)
-		except KeyError:
-			messagebox.showerror("Erreur", "Adresse e-mail de test non trouvée dans la configuration.")
-		
+		self.test_email_label = ttk.Label(self.frame_test_email, text="Envoyer a l'adresse email de test:")
+		self.test_email_label.grid(row=2, column=0, sticky="w", padx=10, pady=5)
+		text_input = ttk.Entry(self.frame_test_email, width=35, textvariable=self.test_email_var)
+		text_input.grid(row=3, column=0, padx=5, pady=5)
+		save_button_test_email = ttk.Button(self.frame_test_email, text="Enregistrer",
+		                                    command=self.save_settings_test_email)
 		send_test_email_button = ttk.Button(self.frame_test_email, text="Envoyer un email de test",
 		                                    command=self.send_test_email)
-		send_test_email_button.grid(row=4, column=0, padx=10, pady=5)
+		save_button_test_email.grid(row=4, column=0, padx=10, pady=5)
+		send_test_email_button.grid(row=6, column=0, padx=10, pady=5)
 	
 	def init_setting_email(self):
-		options = list(self.config.keys())[1:]
-		self.selected_option.set(options[0])
+		self.load_data_from_json()
+		options = list(self.email_templates.keys())
+	
 		
+		# Modification ici pour utiliser la nouvelle méthode update_email_content au lieu de load_data_from_json
 		select_menu = ttk.OptionMenu(self.frame_email, self.selected_option, options[0], *options,
-		                             command=self.load_email_data)
+		                             command=self.update_email_content)
 		select_menu.grid(row=0, column=1, padx=10, pady=5)
 		
 		self.subject_label = ttk.Label(self.frame_email, text="Sujet de l'email")
@@ -141,77 +149,101 @@ class ParametersPage(Frame):
 		save_button_email = ttk.Button(self.frame_email, text="Enregistrer Email", command=self.save_settings_email)
 		save_button_email.grid(row=2, column=3, columnspan=2, pady=10)
 	
+	def update_email_content(self, selection):
+		email_template = self.email_templates.get(selection)
+		if email_template:
+			self.subject_entry.delete(0, tk.END)
+			self.subject_entry.insert(0, email_template.get('subject', ''))
+			self.body_text.delete('1.0', tk.END)
+			self.body_text.insert('1.0', email_template.get('body', ''))
+		else:
+			# Effacer les champs si le template n'est pas trouvé
+			self.subject_entry.delete(0, tk.END)
+			self.body_text.delete('1.0', tk.END)
+	
 	def load_data_from_json(self):
 		try:
 			with open('./config/config_perso.json', 'r') as f:
-				self.config = json.load(f)
+				config = json.load(f)
+			self.smtp_config = config.get("email", {})
+			self.test_email_config = config.get("email_test", {})
+			self.email_templates = config.get("email_templates", {})
 		except FileNotFoundError:
 			messagebox.showerror("Erreur", "Fichier de configuration non trouvé.")
-			self.config = {}
-	
-	def load_email_data(self, *args):
-		selected_option = self.selected_option.get()
-		
-		if (selected_option in self.config) and (isinstance(self.config[selected_option], dict)):
-			email_data = self.config[selected_option]
-			self.subject_entry.delete(0, tk.END)
-			self.subject_entry.insert(0, email_data.get("subject", ""))
-			self.body_text.delete("1.0", tk.END)
-			self.body_text.insert(tk.END, email_data.get("body", ""))
-	
-	def update_test_email_label(self, *args):
-		selected_test_option = self.selected_test_option.get()
-		self.test_email_label.config(text=f"Type d'email de test: {selected_test_option}")
-	
+			self.smtp_config = {}
+			self.test_email_config = {}
+			self.email_templates = {}
+
 	def save_settings_smtp(self):
 		try:
 			smtp_settings = {
 				param_name: entry.get()
 				for param_name, entry in self.entries.items()
 			}
-			smtp_settings["smtp_port"] = int(smtp_settings["smtp_port"])
-			
 			self.config["email"] = smtp_settings
-			
+
+
 			with open('./config/config_perso.json', 'w') as f:
 				json.dump(self.config, f, indent=2)
-			
-			messagebox.showwarning("Enregistrés avec succès", "S'il vous plaît redémarrez l'application pour "
-			                                                  "appliquer les modifications ")
+
+			messagebox.showwarning("Enregistrés avec succès",
+								   "S'il vous plaît redémarrez l'application pour appliquer les modifications ")
 			logging.info("Les paramètres SMTP ont été enregistrés avec succès")
-			
-		except ValueError:
-			messagebox.showerror("Erreur", "Le port SMTP doit être un nombre entier.")
-			logging.error("Erreur: Le port SMTP doit être un nombre entier.")
+			self.load_config()
 		except Exception as e:
 			messagebox.showerror("Erreur", f"Erreur lors de l'enregistrement des données: {e}")
-			logging.error(f"Erreur lors de l'enregistrement des paramètres SMTP: {e}")
+			logging.error(f"Erreur lors de l'enregistrement des données: {e}")
+
 	
 	def save_settings_email(self):
 		try:
+			with open('./config/config_perso.json', 'r') as f:
+				current_config = json.load(f)
+			
 			selected_option = self.selected_option.get()
 			email_template = {
 				"subject": self.subject_entry.get(),
 				"body": self.body_text.get("1.0", tk.END).strip()
 			}
 			
-			self.config[selected_option] = email_template
-			
+			if "email_templates" in current_config and selected_option in current_config["email_templates"]:
+				current_config["email_templates"][selected_option].update(email_template)
+			else:
+				messagebox.showerror("Erreur", f"Le template d'email {selected_option} n'existe pas.")
+				return
+		
 			with open('./config/config_perso.json', 'w') as f:
-				json.dump(self.config, f, indent=2)
-			
-			messagebox.showinfo("Enregistrement", "Les paramètres d'email ont été enregistrés avec succès")
+				json.dump(current_config, f, indent=2)
+			messagebox.showwarning("Enregistrés avec succès", "S'il vous plaît redémarrez l'application pour "
+			                                                  "appliquer les modifications ")
 			logging.info("Settings saved successfully")
+			self.load_config()
 		
 		except Exception as e:
 			messagebox.showerror("Erreur", f"Erreur lors de l'enregistrement des données: {e}")
 			logging.error(f"Setting email : Error {e}")
 	
-	def send_test_email(self):
-		
+	
+	def save_settings_test_email(self):
 		try:
+			new_test_email = self.test_email_var.get()
+			self.test_email_config['receiver_email_test'] = new_test_email
+			with open('./config/config_perso.json', 'r') as f:
+				config = json.load(f)
+			config['email_test']['receiver_email_test'] = new_test_email
+			with open('./config/config_perso.json', 'w') as f:
+				json.dump(config, f, indent=2)
+			if new_test_email:
+				messagebox.showwarning("Enregistrés avec succès", "S'il vous plaît redémarrez l'application pour "
+				                                                  "appliquer les modifications ")
+		except Exception as e:
+			messagebox.showerror("Erreur", f"Erreur lors de l'envoi de l'email de test: {e}")
+			logging.error(f"Erreur lors d'enregistrement de l'email de test: {e}")
+	def send_test_email(self):
+		try:
+
 			selected_test_option = self.selected_test_option.get()
-			email_template = self.config[selected_test_option]
+			email_template = self.email_templates.get(selected_test_option)
 			send_email = self.emailOpr.send_test_email(email_template['subject'], email_template['body'])
 			if send_email:
 				messagebox.showinfo("Email envoyé", "Email de test envoyé avec succès")
@@ -221,3 +253,4 @@ class ParametersPage(Frame):
 		except Exception as e:
 			messagebox.showerror("Erreur", f"Erreur lors de l'envoi de l'email de test: {e}")
 			logging.error(f"Erreur lors de l'envoi de l'email de test: {e}")
+

@@ -65,9 +65,8 @@ class ExcelOperation:
                 first_name = row[header_indices['PRENOM']]
                 email = row[header_indices['EMAIL']]
                 last_interview_raw = row[header_indices['DERNIER ENTRETIEN']]
-                last_interview = self.verify_format_date(last_interview_raw, f"{last_name} {first_name}")
-                if last_interview is None:
-                    invalid_date_found = True
+                last_interview = self.verify_format_date(last_interview_raw, f"{last_name} {first_name}", file_path)
+                if last_interview is False:
                     continue
                 
                 if email is None:
@@ -81,8 +80,7 @@ class ExcelOperation:
                     'last_interview': last_interview
                 })
             
-            if invalid_date_found:
-                return None
+
             
             return extracted_data
         except Exception as e:
@@ -123,19 +121,23 @@ class ExcelOperation:
             return True
         return False
     
-    def verify_format_date(self, date, name):
+    def verify_format_date(self, date, name, file_path):
         if isinstance(date, datetime):
             return date.strftime('%d/%m/%y')
         if isinstance(date, str):
             match = re.match(r'(\d{1,2})/(\d{1,2})/(\d{2,4})', date)
             if match:
                 day, month, year = match.groups()
-                if len(year) == 3:
-                    logging.error(f"ERROR date form ==== Invalid year format in date: {date} for {name}")
-                    return None
-                corrected_date = f'{day}/{month}/{year}'
-                return corrected_date
-        return None
+                if len(year) == 2 or len(year) == 4:  # Accepting only 2 or 4 digit years
+                    corrected_date = f'{day}/{month}/{year}'
+                    return corrected_date
+                else:
+                    logging.error(f"Invalid year format in date: {date} for {name}. Skipping user.")
+                    messagebox.showwarning("Avertissement",
+										   f"Format de date incorrect pour {name} dans {file_path}. il sera ignoré.")
+                    return False  # Indicates an invalid date format
+        logging.error(f"Invalid date format for {name}. Skipping user.")
+        return False
         
     
 

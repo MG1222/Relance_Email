@@ -19,14 +19,14 @@ def resource_path(relative_path):
 	
 	return os.path.join(base_path, relative_path)
 
+
 class TestEmailSender:
 	def __init__(self, use_mailhog=False):
 		self.config = load_config()
 		self.use_mailhog = use_mailhog
 		self.sender_email = self.config['email']['sender_email']
 		self.link_calendly = self.config['email']['link_calendly']
-		self.new_email_text = self.config['email_templates']['body']
-		self.new_email_subject = self.config['email_templates']['subject']
+
 	
 	def encode_image_to_base64(self, image_path):
 		try:
@@ -53,6 +53,7 @@ class TestEmailSender:
 		return html_formatted_text
 	
 	def send_test_email(self, subject, text_raw):
+		self.config = load_config()
 		try:
 			logo_akema = resource_path("./asset/logo.png")
 			logo_GT = resource_path("./asset/logoGT.jpg")
@@ -64,8 +65,8 @@ class TestEmailSender:
 			password = self.config['email']['password']
 			
 			link_calendly = self.link_calendly
-
-			receiver_email = self.config['email']['receiver_email_test']
+			
+			receiver_email = self.config['email_test']['receiver_email_test']
 			first_name = 'Test'
 			text = self.format_email_text(text_raw)
 			
