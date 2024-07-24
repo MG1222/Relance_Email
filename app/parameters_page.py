@@ -9,7 +9,7 @@ from app.test_email_sender import TestEmailSender
 class ParametersPage(Frame):
 	def __init__(self, parent, controller, *args, **kwargs):
 		super().__init__(parent, *args, **kwargs)
-		self.emailOpr = TestEmailSender()
+
 
 		self.controller = controller
 		self.selected_option = StringVar()
@@ -186,9 +186,9 @@ class ParametersPage(Frame):
 			with open('./config/config_perso.json', 'w') as f:
 				json.dump(self.config, f, indent=2)
 
-			messagebox.showwarning("Enregistrés avec succès",
-								   "S'il vous plaît redémarrez l'application pour appliquer les modifications ")
-			logging.info("Les paramètres SMTP ont été enregistrés avec succès")
+			messagebox.showinfo("Enregistrés avec succès",
+								   "Les paramètres SMTP ont été enregistrés avec succès")
+
 			self.load_config()
 		except Exception as e:
 			messagebox.showerror("Erreur", f"Erreur lors de l'enregistrement des données: {e}")
@@ -214,9 +214,7 @@ class ParametersPage(Frame):
 		
 			with open('./config/config_perso.json', 'w') as f:
 				json.dump(current_config, f, indent=2)
-			messagebox.showwarning("Enregistrés avec succès", "S'il vous plaît redémarrez l'application pour "
-			                                                  "appliquer les modifications ")
-			logging.info("Settings saved successfully")
+			messagebox.showinfo("Enregistrés avec succès", "Les paramètres ont été enregistrés avec succès")
 			self.load_config()
 		
 		except Exception as e:
@@ -234,17 +232,18 @@ class ParametersPage(Frame):
 			with open('./config/config_perso.json', 'w') as f:
 				json.dump(config, f, indent=2)
 			if new_test_email:
-				messagebox.showwarning("Enregistrés avec succès", "S'il vous plaît redémarrez l'application pour "
-				                                                  "appliquer les modifications ")
+				messagebox.showinfo("Enregistrés avec succès", "Email de test enregistré avec succès")
 		except Exception as e:
 			messagebox.showerror("Erreur", f"Erreur lors de l'envoi de l'email de test: {e}")
 			logging.error(f"Erreur lors d'enregistrement de l'email de test: {e}")
 	def send_test_email(self):
 		try:
+			emailOpr = TestEmailSender()
+			self.load_data_from_json()
 
 			selected_test_option = self.selected_test_option.get()
 			email_template = self.email_templates.get(selected_test_option)
-			send_email = self.emailOpr.send_test_email(email_template['subject'], email_template['body'])
+			send_email = emailOpr.send_test_email(email_template['subject'], email_template['body'])
 			if send_email:
 				messagebox.showinfo("Email envoyé", "Email de test envoyé avec succès")
 			else:

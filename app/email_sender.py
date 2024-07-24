@@ -34,6 +34,7 @@ class EmailSender:
         self.email_six_subject = self.config['email_templates']['Email 6 mois']['subject']
         self.email_plus_six_text = self.config['email_templates']['Email 12 mois']['body']
         self.email_plus_six_subject = self.config['email_templates']['Email 12 mois']['subject']
+        self.bbc_email = self.config['email']['bcc_email']
 
     def encode_image_to_base64(self, image_path):
         try:
@@ -62,7 +63,7 @@ class EmailSender:
 
     def send_email_after_3_months(self, information):
         self.config = load_config()
-        print("send_email_after_3_months")
+
         try:
             logo_akema = resource_path("./asset/logo.png")
             logo_GT = resource_path("./asset/logoGT.jpg")
@@ -72,14 +73,12 @@ class EmailSender:
             smtp_port = self.config['email']['smtp_port']
             login = self.config['email']['login']
             password = self.config['email']['password']
-
             link_calendly = self.link_calendly
 
-            receiver_email = "aakematest@gmail.com"
-            # receiver_email = information['email']
+            receiver_email = information['email']
             first_name = information['first_name']
 
-            bcc_email = "majagantuya@gmail.com"
+            bcc_email = self.bbc_email
 
             text = self.format_email_text(self.email_three_text)
 
@@ -144,7 +143,7 @@ class EmailSender:
 
     def send_email_after_6_months(self, information):
         self.config = load_config()
-        print("send_email_after_6_months")
+
         try:
             logo_akema = resource_path("./asset/logo.png")
             logo_GT = resource_path("./asset/logoGT.jpg")
@@ -157,10 +156,10 @@ class EmailSender:
 
             link_calendly = self.link_calendly
 
-            receiver_email = "aakematest@gmail.com"
-            # receiver_email = information['email']
+
+            receiver_email = information['email']
             first_name = information['first_name']
-            bcc_email = "majagantuya@gmail.com"
+            bcc_email = self.bbc_email
 
             text = self.format_email_text(self.email_three_text)
 
@@ -225,11 +224,9 @@ class EmailSender:
 
     def send_email_after_12_months(self, information):
         self.config = load_config()
-        print("send_email_after_12_months")
         try:
             logo_akema = resource_path("./asset/logo.png")
             logo_GT = resource_path("./asset/logoGT.jpg")
-            print("send_email_after_12_months")
 
             sender_email = self.sender_email
             smtp_server = self.config['email']['smtp_server']
@@ -241,10 +238,10 @@ class EmailSender:
             text = self.format_email_text(self.email_plus_six_text)
             subject = self.email_plus_six_subject
 
-            receiver_email = "aakematest@gmail.com"
-            # receiver_email = information['email']
+
+            receiver_email = information['email']
             first_name = information['first_name']
-            bcc_email = "majagantuya@gmail.com"
+            bcc_email = self.bbc_email
 
             msg = MIMEMultipart('related')
             msg['From'] = sender_email
@@ -272,7 +269,7 @@ class EmailSender:
                                         </html>
                                     """
             msg.attach(MIMEText(html_content, 'html'))
-            print("send_email_after_12_months")
+
 
             # Attach image as related content
             logo_akema_base64 = self.encode_image_to_base64(logo_akema)
@@ -293,24 +290,10 @@ class EmailSender:
                     server.send_message(msg)
             else:
                 # Send via SMTP server
-                print("smtp_server", smtp_server)
-
                 with smtplib.SMTP(smtp_server, smtp_port) as server:
-                    print(f"Connecting to SMTP server at {smtp_server} on port {smtp_port}")
-
-                    # After starting TLS, add a print statement to confirm the connection is secure
-                    print("Started TLS, connection is now secure")
-
-                    # Before attempting to log in, add a print statement to confirm the login attempt
-                    print(f"Attempting to log in with username: {login}")
-
-                    try:
-                        server.login(login, password)
-                        print("Logged in successfully")
-                    except Exception as e:
-                        logging.error(f"Failed to log in: {e}")
-                        print(f"Failed to log in: {e}")
+                    server.starttls()
+                    server.login(login, password)
+                    server.send_message(msg)
         except Exception as e:
             logging.error(f"Error sending email: {e} , {information['email']}")
-            print(f"Error sending email: {e} , {information['email']}")
             return False

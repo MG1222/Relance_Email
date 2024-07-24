@@ -22,6 +22,7 @@ class MainPage(Frame):
         self.emailOpr = EmailOperation()
         self.task_queue = queue.Queue()
 
+
         self.progress_label = ttk.Label(self, text="Progress: ")
         # Set up the main grid layout
         self.grid(row=0, column=0, sticky="nsew")
@@ -30,7 +31,7 @@ class MainPage(Frame):
 
         self.create_widgets()
         self.starting_app()
-
+        self.display_last_path()
 
         # Start the task handler thread
         self.controller.after(100, self.process_tasks)
@@ -52,9 +53,9 @@ class MainPage(Frame):
 
         # Add description and version
         description = ttk.Label(main_frame,
-                                text="Mini app de gestion de données Excel avec vérification des doublons et envoi "
-                                     "automatisé d'emails apres 3 mois, 6 mois et 12 mois.",
-                                wraplength=400, justify="center")
+                            text="Mini app de gestion de données Excel avec vérification des doublons et envoi "
+                                 "automatisé d'emails apres 3 mois, 6 mois et 12 mois.",
+                            wraplength=400, justify="center")
         description.grid(row=1, column=0, pady=(0, 10), sticky="n")
         version = ttk.Label(main_frame, text="Version 1.0")
         version.grid(row=2, column=0, pady=(0, 20), sticky="n")
@@ -89,7 +90,7 @@ class MainPage(Frame):
         parameter_button = ttk.Button(buttons_frame, text="Paramètres", style='W.TButton',
                                       command=lambda: self.controller.show_frame(ParametersPage.__name__))
         parameter_button.grid(row=0, column=1, padx=10)
-        self.send_email_button = ttk.Button(buttons_frame, text="Envoyer des emails", command=self.try_send_email,
+        self.send_email_button = ttk.Button(buttons_frame, text="Envoyer des emails", command=self.confirm_send_email,
                                             style='TButton', state="disabled")
         self.send_email_button.grid(row=0, column=2, padx=10)
         refresh_button = ttk.Button(buttons_frame, text="Rafraîchir", command=self.check_eligibility)
@@ -102,13 +103,13 @@ class MainPage(Frame):
 
         self.footer_frame = Frame(self)
         self.footer_frame.grid(row=5, column=0, sticky="ew", padx=20, pady=10)
-        self.file_path_label = ttk.Label(self.footer_frame, text=f" {self.get_current_file_path()}")
+        self.file_path_label = ttk.Label(self.footer_frame, text="Dernier fichier traité: ")
         self.file_path_label.grid(row=0, column=0, sticky="w")
+
 
 
     def starting_app(self):
         self.controller.title("Relance RH Email")
-
         # Configure columns for Treeview
         self.tree.heading("Relance à", text="Relance à")
         self.tree.heading("Envoyer mail", text="Envoyer mail")
@@ -122,14 +123,20 @@ class MainPage(Frame):
         self.tree.column("Total e-mails envoyés", width=150, anchor="center")
 
         self.check_eligibility()
-
-
+    def display_last_path(self):
+        self.get_current_file_path()
 
     def get_current_file_path(self):
-        if self.bdd.get_last_path() is None:
-            return "Aucun fichier traité"
-        return self.bdd.get_last_path()
+        last_path = self.bdd.get_last_path()
+        if last_path is None:
+            display_text = "Aucun fichier traité"
+        else:
+            display_text = last_path
 
+        # Mise à jour du texte du label directement
+        self.file_path_label.config(text=f"Dernier fichier traité: {display_text}")
+
+        return display_text
 
     def get_data(self):
         file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
@@ -139,24 +146,25 @@ class MainPage(Frame):
             self.progress["value"] = 5
             self.task_queue.put((self.process_excel_file, (file_path,)))
 
-
     def process_excel_file(self, file_path):
         save_bdd = self.excelOpr.process_excel_file(file_path)
         if save_bdd:
             messagebox.showinfo("Information", "Les données ont été insérées avec succès.")
             self.bdd.insert_path(file_path)
             self.check_eligibility()
+
+            self.file_path_label.config(text=f"Dernier fichier traité: {self.get_current_file_path()}")
         else:
             self.progress["value"] = 1
             self.controller.update_idletasks()
             time.sleep(0.5)
             if self.excelOpr.error_messages:
                 messagebox.showerror("Erreur", "\n".join(self.excelOpr.error_messages))
-
             else:
                 messagebox.showerror("Erreur", "Aucune donnée n'a été insérée dans la base de données")
         self.progress.grid_remove()
         self.check_eligibility()
+
     def check_eligibility(self):
         try:
             style = ttk.Style()
@@ -209,14 +217,12 @@ class MainPage(Frame):
         self.controller.after(100, self.process_tasks)
 
     def send_emails_with_progress(self, total_emails, users):
-        print("Sending emails...")
         self.progress_frame = Frame(self)
         self.progress_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
         self.progress = ttk.Progressbar(self.progress_frame, orient="horizontal", length=750, mode="determinate")
         self.progress.grid(row=1, column=0, sticky="ew")
         self.text_progress = ttk.Label(self.progress_frame, text="Progress: ")
         self.text_progress.grid(row=0, column=0, sticky="s")
-        print("Total emails to send: ", total_emails)
 
         def update_progress(email_count, total_emails):
             progress_value = (email_count / total_emails) * 100
@@ -228,7 +234,7 @@ class MainPage(Frame):
         self.emailOpr.try_send_email(update_progress)
         self.after_send_email()
 
-    def try_send_email(self):
+    def confirm_send_email(self):
         users = self.emailOpr.count_users()
         total_emails = users['send_email']
         if total_emails > 0:
@@ -238,6 +244,7 @@ class MainPage(Frame):
                 self.check_eligibility()
             else:
                 messagebox.showinfo("Annulé", "L'envoi des emails a été annulé.")
+                self.check_eligibility()
         else:
             messagebox.showinfo("Information", "Aucun email à envoyer.")
 
@@ -248,3 +255,6 @@ class MainPage(Frame):
         self.check_eligibility()
         messagebox.showinfo("Information", "Les emails ont été envoyés avec succès.")
         self.send_email_button.config(state="disabled")
+
+
+

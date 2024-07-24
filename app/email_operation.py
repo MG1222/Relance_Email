@@ -191,18 +191,21 @@ class EmailOperation:
             return False
 
     def send_email_to_user(self, user_dict):
+        global is_send
         try:
             email_sender = EmailSender()
             if user_dict['email_3']:
-                email_sender.send_email_after_3_months(user_dict)
+                is_send = email_sender.send_email_after_3_months(user_dict)
                 self.db.update_status_email_3(user_dict['email'])
             elif user_dict['email_6']:
-                email_sender.send_email_after_6_months(user_dict)
+                is_send = email_sender.send_email_after_6_months(user_dict)
                 self.db.update_status_email_6(user_dict['email'])
             elif user_dict['email_12']:
-                email_sender.send_email_after_12_months(user_dict)
+                is_send = email_sender.send_email_after_12_months(user_dict)
                 self.db.update_status_email_12(user_dict['email'])
-            return True
+            if is_send:
+                return True
+            return False
         except Exception as e:
             logging.error(f"EmailOpr = Error_process_user_email: {e}")
             return False

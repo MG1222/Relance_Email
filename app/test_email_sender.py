@@ -54,6 +54,7 @@ class TestEmailSender:
 	
 	def send_test_email(self, subject, text_raw):
 		self.config = load_config()
+
 		try:
 			logo_akema = resource_path("./asset/logo.png")
 			logo_GT = resource_path("./asset/logoGT.jpg")
@@ -63,24 +64,26 @@ class TestEmailSender:
 			smtp_port = self.config['email']['smtp_port']
 			login = self.config['email']['login']
 			password = self.config['email']['password']
-			
 			link_calendly = self.link_calendly
-			
+
+			bcc_email = "fbernard@akema.fr"
 			receiver_email = self.config['email_test']['receiver_email_test']
-			first_name = 'Test'
+
 			text = self.format_email_text(text_raw)
-			
+
 			msg = MIMEMultipart('related')
 			msg['From'] = sender_email
 			msg['To'] = receiver_email
 			msg['Subject'] = subject
+			msg['Bcc'] = bcc_email
+
 			
 			html_content = f"""\
                         <html>
                         <head></head>
                         <body>
                             <p style="font-family: Arial, sans-serif; font-size: 14px;">
-                                Bonjour {first_name}, </p><br><br>
+                                Bonjour , </p><br><br>
 								{text}
 
 								<p>Pour planifier un entretien, veuillez utiliser notre <a href="{link_calendly}">lien

@@ -21,9 +21,10 @@ class Database(DatabaseInitializer):
         except Exception as e:
             logging.error(f"An error occurred: {e}")
             raise e
+
     def get_last_path(self):
         try:
-            query = "SELECT last_path FROM last_path"
+            query = "SELECT last_path FROM last_path ORDER BY id DESC LIMIT 1"
             self.cursor.execute(query)
             return self.cursor.fetchone()
         except Exception as e:
