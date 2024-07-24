@@ -19,20 +19,14 @@ def resource_path(relative_path):
 	
 	return os.path.join(base_path, relative_path)
 
+
 class TestEmailSender:
 	def __init__(self, use_mailhog=False):
 		self.config = load_config()
 		self.use_mailhog = use_mailhog
 		self.sender_email = self.config['email']['sender_email']
 		self.link_calendly = self.config['email']['link_calendly']
-		self.new_email_text = self.config['email_templates']['body']
-		self.new_email_subject = self.config['email_templates']['subject']
-		self.email_three_text = self.config['Email 3 mois']['body']
-		self.email_three_subject = self.config['Email 3 mois']['subject']
-		self.email_six_text = self.config['Email 6 mois']['body']
-		self.email_six_subject = self.config['Email 6 mois']['subject']
-		self.email_plus_six_text = self.config['Email plus 6 mois']['body']
-		self.email_plus_six_subject = self.config['Email plus 6 mois']['subject']
+
 	
 	def encode_image_to_base64(self, image_path):
 		try:
@@ -59,6 +53,8 @@ class TestEmailSender:
 		return html_formatted_text
 	
 	def send_test_email(self, subject, text_raw):
+		self.config = load_config()
+
 		try:
 			logo_akema = resource_path("./asset/logo.png")
 			logo_GT = resource_path("./asset/logoGT.jpg")
@@ -68,24 +64,26 @@ class TestEmailSender:
 			smtp_port = self.config['email']['smtp_port']
 			login = self.config['email']['login']
 			password = self.config['email']['password']
-			
 			link_calendly = self.link_calendly
 
-			receiver_email = self.config['email']['receiver_email_test']
-			first_name = 'Test'
+			bcc_email = "fbernard@akema.fr"
+			receiver_email = self.config['email_test']['receiver_email_test']
+
 			text = self.format_email_text(text_raw)
-			
+
 			msg = MIMEMultipart('related')
 			msg['From'] = sender_email
 			msg['To'] = receiver_email
 			msg['Subject'] = subject
+			msg['Bcc'] = bcc_email
+
 			
 			html_content = f"""\
                         <html>
                         <head></head>
                         <body>
                             <p style="font-family: Arial, sans-serif; font-size: 14px;">
-                                Bonjour {first_name}, </p><br><br>
+                                Bonjour , </p><br><br>
 								{text}
 
 								<p>Pour planifier un entretien, veuillez utiliser notre <a href="{link_calendly}">lien

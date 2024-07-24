@@ -28,7 +28,7 @@ class AppPageController(Tk):
 			frame = self.frames[page_name]
 			frame.tkraise()
 			if page_name == "ParametersPage":
-				self.geometry("800x850")
+				self.geometry("860x850")
 			else:
 				self.geometry("800x600")
 		else:
