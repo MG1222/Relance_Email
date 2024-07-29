@@ -31,7 +31,6 @@ class Database(DatabaseInitializer):
             logging.error(f"An error occurred: {e}")
             raise e
 
-
     def insert_data(self, data):
         try:
             query = "INSERT INTO relance_rh (last_name, first_name, email, last_interview) VALUES (?, ?, ?, ?)"
@@ -52,6 +51,17 @@ class Database(DatabaseInitializer):
         except Exception as e:
             logging.error(f"An error occurred: {e}")
             raise e
+
+    def get_users_dont_send_false(self):
+        query = "SELECT * FROM relance_rh WHERE dont_email = FALSE"
+        try:
+            self.cursor.execute(query)
+            users = self.cursor.fetchall()
+            return users
+        except Exception as e:
+            logging.error(f"Database = Error fetching users with dont_send = False: {e}")
+            return []
+
 
     def get_email(self):
         try:
@@ -138,6 +148,7 @@ class Database(DatabaseInitializer):
             logging.error(f"An error occurred while updating email_12 status for email {email}: {e}")
             return False
 
+
     def get_total_email_send(self):
         try:
             query = """
@@ -155,8 +166,33 @@ class Database(DatabaseInitializer):
             logging.error(f"An error occurred while fetching total email send: {e}")
             return 0
 
+    def update_user(self, user_id, column_name, new_value):
+        try:
+            query = f"UPDATE relance_rh SET {column_name} = ? WHERE id = ?"
+            self.cursor.execute(query, (new_value, user_id))
+            self.conn.commit()
+            return True
+        except Exception as e:
+            logging.error(f"An error occurred while updating user {user_id}: {e}")
+            return False
 
+    def get_users_by_name(self, name):
+        try:
+            query = "SELECT * FROM relance_rh WHERE last_name LIKE ?"
+            self.cursor.execute(query, (name + '%',))
+            return self.cursor.fetchall()
+        except Exception as e:
+            logging.error(f"An error occurred while fetching users by name: {e}")
+            raise e
 
+    def get_users_by_email(self, email):
+        try:
+            query = "SELECT * FROM relance_rh WHERE email LIKE ?"
+            self.cursor.execute(query, (email + '%',))
+            return self.cursor.fetchall()
+        except Exception as e:
+            logging.error(f"An error occurred while fetching users by email: {e}")
+            raise e
 
 if __name__ == "__main__":
     reset = Database()

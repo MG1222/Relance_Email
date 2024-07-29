@@ -77,11 +77,8 @@ class EmailSender:
 
             receiver_email = information['email']
             first_name = information['first_name']
-
             bcc_email = self.bbc_email
-
             text = self.format_email_text(self.email_three_text)
-
             subject = self.email_three_subject
 
             msg = MIMEMultipart('related')
@@ -153,16 +150,13 @@ class EmailSender:
             smtp_port = self.config['email']['smtp_port']
             login = self.config['email']['login']
             password = self.config['email']['password']
-
             link_calendly = self.link_calendly
 
 
             receiver_email = information['email']
             first_name = information['first_name']
             bcc_email = self.bbc_email
-
             text = self.format_email_text(self.email_three_text)
-
             subject = self.email_three_subject
 
             msg = MIMEMultipart('related')

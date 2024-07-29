@@ -1,14 +1,15 @@
-import json
-import threading
 import queue
 import time
 from tkinter import Frame, ttk, filedialog, messagebox
 from PIL import Image, ImageTk
 import logging
+
+from app.database_page import DatabasePage
 from app.email_operation import EmailOperation
 from app.excel_operation import ExcelOperation
 from app.parameters_page import ParametersPage
 from app.database import Database
+
 
 
 class MainPage(Frame):
@@ -70,6 +71,7 @@ class MainPage(Frame):
                                  columns=("Relance à", "Envoyer mail", "Pas envoyer mail", "Total e-mails envoyés"),
                                  show="headings")
         self.tree.grid(row=3, column=0, sticky="nsew")
+        self.tree.tag_configure('Blue.Background', background='light blue')
 
         # Create a frame for buttons
         buttons_frame = Frame(main_frame)
@@ -95,6 +97,8 @@ class MainPage(Frame):
         self.send_email_button.grid(row=0, column=2, padx=10)
         refresh_button = ttk.Button(buttons_frame, text="Rafraîchir", command=self.check_eligibility)
         refresh_button.grid(row=0, column=3, padx=10)
+        datebase_button = ttk.Button(buttons_frame, text="Base de données", command=lambda: self.controller.show_frame(DatabasePage.__name__))
+        datebase_button.grid(row=0, column=4, padx=10)
         # Create and configure the progress bar
         self.progress = ttk.Progressbar(self, orient="horizontal", length=200, mode="determinate")
         # Initially, you might want to hide the progress bar until needed
@@ -169,6 +173,8 @@ class MainPage(Frame):
         try:
             style = ttk.Style()
             style.configure("Blue.Foreground", foreground="blue")
+
+
             users = self.emailOpr.count_users()
             total_email = self.bdd.get_total_email_send()
             self.tree.delete(*self.tree.get_children())
@@ -193,7 +199,7 @@ class MainPage(Frame):
                              tags=('Envoyer mail', 'Pas envoyer mail'))
             self.tree.insert("", "end",
                              values=("Total ", users['send_email'], users['dont_send_email'], total_email),
-                             tags=('Total e-mails envoyés',))
+                             tags=('Total e-mails envoyés', 'Blue.Background'))
 
             if users['three_months_count']['nb'] > 0 or users['six_months_count']['nb'] > 0 or \
                     users['twelve_months_count']['nb'] > 0:
@@ -202,11 +208,11 @@ class MainPage(Frame):
             tree_height = min(6, len(self.tree.get_children()))
             self.tree.config(height=tree_height)
 
-
         except Exception as e:
             logging.error(f"Error: {e}")
             self.tree.delete(*self.tree.get_children())
-            self.tree.insert("", "end", values=("", "Aucun utilisateur dans la base de donne", ""))
+            self.tree.insert("", "end", values=("", "Aucun utilisateur dans la base de donne", ""),
+                             tags=('Blue.Background',))
             self.tree.config(height=1)
             self.send_email_button.config(state="disabled")
 

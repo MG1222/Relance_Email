@@ -25,7 +25,7 @@ class DatabaseInitializer:
 				cursor = conn.cursor()
 				cursor.execute('''CREATE TABLE IF NOT EXISTS relance_rh
 											  ( id INTEGER PRIMARY KEY AUTOINCREMENT, last_name TEXT, first_name TEXT, email TEXT UNIQUE,
-											  last_interview TEXT, email_3 BOOLEAN DEFAULT FALSE,
+											  last_interview TEXT, dont_email BOOLEAN DEFAULT FALSE, email_3 BOOLEAN DEFAULT FALSE,
 											  email_6 BOOLEAN DEFAULT FALSE, email_12 BOOLEAN DEFAULT FALSE)''')
 				cursor.execute('''CREATE TABLE IF NOT EXISTS last_path
 				                              (id INTEGER PRIMARY KEY AUTOINCREMENT, last_path TEXT)''')
