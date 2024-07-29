@@ -211,7 +211,7 @@ class MainPage(Frame):
         except Exception as e:
             logging.error(f"Error: {e}")
             self.tree.delete(*self.tree.get_children())
-            self.tree.insert("", "end", values=("", "Aucun utilisateur dans la base de donne", ""),
+            self.tree.insert("", "end", values=("", "Aucun candidates dans la base de donne", ""),
                              tags=('Blue.Background',))
             self.tree.config(height=1)
             self.send_email_button.config(state="disabled")

@@ -1,6 +1,8 @@
+import logging
+
 from app.database import Database
 
-from tkinter import Frame, Label, Entry, Button, ttk, StringVar, Toplevel, OptionMenu
+from tkinter import Frame, Label, Entry, Button, ttk, StringVar, Toplevel, OptionMenu, messagebox
 import tkinter as tk
 
 
@@ -96,7 +98,7 @@ class DatabasePage(Frame):
         cannot_send_checkbox.grid(row=2, column=0, padx=5, pady=5, sticky="w")
 
         # Button
-        get_all_users_button = ttk.Button(filter_frame, text="Afficher tous les utilisateurs",
+        get_all_users_button = ttk.Button(filter_frame, text="Rafraîchir",
                                           command=self.get_all_users)
         get_all_users_button.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         return_button = ttk.Button(filter_frame, text="Retour", command=lambda: self.controller.show_frame("MainPage"))
@@ -153,7 +155,7 @@ class DatabasePage(Frame):
 
         if self.tree["columns"][column_index] == "dont_email":
             if new_value not in ["Ne peut pas !", "Peut envoyer"]:
-                tk.messagebox.showerror("Invalid Input", "Please select a valid option for Email Permission.")
+                tk.messagebox.showerror("Invalid Input", "S'il vous plaît, entrez 'Ne peut pas !' ou 'Peut envoyer'")
                 return
             values[column_index] = new_value
             db_value = 1 if new_value == "Ne peut pas !" else 0
@@ -185,12 +187,20 @@ class DatabasePage(Frame):
         return column_name_map.get(column_name, column_name)
 
     def get_all_users(self):
-        users = self.bdd.get_all_users()
-        self.tree.delete(*self.tree.get_children())
-        for user in users:
-            user = list(user)
-            user[5] = "Ne peut pas !" if user[5] == 1 else "Peut envoyer"
-            self.tree.insert("", "end", values=user)
+        try:
+            users = self.bdd.get_all_users()
+            self.tree.delete(*self.tree.get_children())
+            if not users:
+                self.tree.insert("", "end", values=["", "", "", "Aucun candidates", "", ""])
+            else:
+                for user in users:
+                    user = list(user)
+                    user[5] = "Ne peut pas !" if user[5] == 1 else "Peut envoyer"
+                    self.tree.insert("", "end", values=user)
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {'{'}\n{'}'.join(e.args)}")
+            logging.error(e)
+
 
 
     def search(self, event=None):
