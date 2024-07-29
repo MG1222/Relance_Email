@@ -56,7 +56,6 @@ class TestEmailSender:
 		self.config = load_config()
 
 		try:
-			logo_akema = resource_path("./asset/logo.png")
 			logo_GT = resource_path("./asset/logoGT.jpg")
 			
 			sender_email = self.sender_email
@@ -91,7 +90,6 @@ class TestEmailSender:
                                 <p>Service de recrutement <a href="mailto:{sender_email}"> <br>
                                 {sender_email} </a><p>
                                 <hr>
-                                <img src="cid:logo_akema" alt="logo_akema" style="width:110px; height:24px;">
                                 <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px;">
 
                             </body>
@@ -100,13 +98,7 @@ class TestEmailSender:
 			msg.attach(MIMEText(html_content, 'html'))
 			
 			# Attach image as related content
-			logo_akema_base64 = self.encode_image_to_base64(logo_akema)
 			logo_GT_base64 = self.encode_image_to_base64(logo_GT)
-			if logo_akema_base64:
-				img = MIMEImage(base64.b64decode(logo_akema_base64), name=os.path.basename(logo_akema))
-				img.add_header('Content-ID', '<logo_akema>')
-				img.add_header('Content-Disposition', 'inline', filename=os.path.basename(logo_akema))
-				msg.attach(img)
 			if logo_GT_base64:
 				img = MIMEImage(base64.b64decode(logo_GT_base64), name=os.path.basename(logo_GT))
 				img.add_header('Content-ID', '<logo_GT>')

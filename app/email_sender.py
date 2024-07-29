@@ -65,7 +65,6 @@ class EmailSender:
         self.config = load_config()
 
         try:
-            logo_akema = resource_path("./asset/logo.png")
             logo_GT = resource_path("./asset/logoGT.jpg")
 
             sender_email = self.sender_email
@@ -100,8 +99,7 @@ class EmailSender:
                                 <p>Service de recrutement <a href="mailto:{sender_email}"> <br>
                                 {sender_email} </a><p>
                                 <hr>
-                                <img src="cid:logo_akema" alt="logo_akema" style="width:110px; height:24px;">
-                                <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px;">
+                                <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px; display:block; margin:0 auto;">
                            
                             </body>
                             </html>
@@ -109,13 +107,7 @@ class EmailSender:
             msg.attach(MIMEText(html_content, 'html'))
 
             # Attach image as related content
-            logo_akema_base64 = self.encode_image_to_base64(logo_akema)
             logo_GT_base64 = self.encode_image_to_base64(logo_GT)
-            if logo_akema_base64:
-                img = MIMEImage(base64.b64decode(logo_akema_base64), name=os.path.basename(logo_akema))
-                img.add_header('Content-ID', '<logo_akema>')
-                img.add_header('Content-Disposition', 'inline', filename=os.path.basename(logo_akema))
-                msg.attach(img)
             if logo_GT_base64:
                 img = MIMEImage(base64.b64decode(logo_GT_base64), name=os.path.basename(logo_GT))
                 img.add_header('Content-ID', '<logo_GT>')
@@ -142,7 +134,6 @@ class EmailSender:
         self.config = load_config()
 
         try:
-            logo_akema = resource_path("./asset/logo.png")
             logo_GT = resource_path("./asset/logoGT.jpg")
 
             sender_email = self.sender_email
@@ -178,8 +169,7 @@ class EmailSender:
                                     recrutment@groupe-trevise.fr"> <br>
                                     recrutment@groupe-trevise.fr </a><p>
                                     <hr>
-                                     <img src="cid:logo_akema" alt="logo_akema" style="width:110px; height:24px;">
-                                     <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px;">
+                                     <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px; display:block; margin:0 auto;">
                                 
                                 </body>
                                 </html>
@@ -187,13 +177,7 @@ class EmailSender:
             msg.attach(MIMEText(html_content, 'html'))
 
             # Attach image as related content
-            logo_akema_base64 = self.encode_image_to_base64(logo_akema)
             logo_GT_base64 = self.encode_image_to_base64(logo_GT)
-            if logo_akema_base64:
-                img = MIMEImage(base64.b64decode(logo_akema_base64), name=os.path.basename(logo_akema))
-                img.add_header('Content-ID', '<logo_akema>')
-                img.add_header('Content-Disposition', 'inline', filename=os.path.basename(logo_akema))
-                msg.attach(img)
             if logo_GT_base64:
                 img = MIMEImage(base64.b64decode(logo_GT_base64), name=os.path.basename(logo_GT))
                 img.add_header('Content-ID', '<logo_GT>')
@@ -219,7 +203,6 @@ class EmailSender:
     def send_email_after_12_months(self, information):
         self.config = load_config()
         try:
-            logo_akema = resource_path("./asset/logo.png")
             logo_GT = resource_path("./asset/logoGT.jpg")
 
             sender_email = self.sender_email
@@ -256,8 +239,7 @@ class EmailSender:
                                             recrutment@groupe-trevise.fr"> <br>
                                             recrutment@groupe-trevise.fr </a><p>
                                             <hr>
-                                             <img src="cid:logo_akema" alt="logo_akema" style="width:110px; height:24px;">
-                                             <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px;">
+                                             <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px; display:block; margin:0 auto;">
                                         </p>
                                         </body>
                                         </html>
@@ -266,13 +248,7 @@ class EmailSender:
 
 
             # Attach image as related content
-            logo_akema_base64 = self.encode_image_to_base64(logo_akema)
             logo_GT_base64 = self.encode_image_to_base64(logo_GT)
-            if logo_akema_base64:
-                img = MIMEImage(base64.b64decode(logo_akema_base64), name=os.path.basename(logo_akema))
-                img.add_header('Content-ID', '<logo_akema>')
-                img.add_header('Content-Disposition', 'inline', filename=os.path.basename(logo_akema))
-                msg.attach(img)
             if logo_GT_base64:
                 img = MIMEImage(base64.b64decode(logo_GT_base64), name=os.path.basename(logo_GT))
                 img.add_header('Content-ID', '<logo_GT>')
