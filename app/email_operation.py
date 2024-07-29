@@ -15,7 +15,7 @@ class EmailOperation:
 
     def count_users(self):
         try:
-            all_users = self.db.get_all_users()
+            all_users = self.db.get_users_dont_send_false()
             if not all_users:
                 logging.error("EmailOpr = No data found in the database")
                 return 0
@@ -38,9 +38,10 @@ class EmailOperation:
                     'first_name': user[2],
                     'email': user[3],
                     'last_interview': user[4],
-                    'status_three_months': user[5],
-                    'status_six_months': user[6],
-                    'status_twelve_months': user[7],
+                    'dont_email': user[5],
+                    'status_three_months': user[6],
+                    'status_six_months': user[7],
+                    'status_twelve_months': user[8],
                     'email_3': False,
                     'email_6': False,
                     'email_12': False,

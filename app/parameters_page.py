@@ -212,7 +212,7 @@ class ParametersPage(Frame):
 				messagebox.showerror("Erreur", f"Le template d'email {selected_option} n'existe pas.")
 				return
 		
-			with open('./config/config_perso.json', 'w') as f:
+			with open('config/config_perso.json', 'w') as f:
 				json.dump(current_config, f, indent=2)
 			messagebox.showinfo("Enregistrés avec succès", "Les paramètres ont été enregistrés avec succès")
 			self.load_config()
