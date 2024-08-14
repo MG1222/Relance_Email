@@ -3,17 +3,31 @@ import time
 import threading
 from datetime import date, datetime, timedelta
 from dateutil.relativedelta import relativedelta
+
+from app import excel_operation
 from app.database import Database
 from app.email_sender import EmailSender
+from app.excel_operation import ExcelOperation
 
 
 class EmailOperation:
+    """
+    This class is responsible for processing the emails.
+    It's responsible for counting the users and sending the emails.
+    it's little a bit complex not so clean , so need to refactor.
+    """
     def __init__(self):
-
         self.db = Database()
+        self.excel_opr = ExcelOperation()
         self.lock = threading.Lock()
 
     def count_users(self):
+        """
+        This method counts the users.
+        We select the users who don't have flag to send email,
+        we compare the last interview date with the current date.
+        """
+
         try:
             all_users = self.db.get_users_dont_send_false()
             if not all_users:
@@ -34,6 +48,7 @@ class EmailOperation:
 
             for user in all_users:
                 user_dict = {
+                    'id': user[0],
                     'last_name': user[1],
                     'first_name': user[2],
                     'email': user[3],
@@ -45,35 +60,31 @@ class EmailOperation:
                     'email_3': False,
                     'email_6': False,
                     'email_12': False,
-
                 }
-
+                self.excel_opr.clean_email_format(user_dict['email'], f"{user_dict['last_name']} {user_dict['first_name']}")
 
                 last_date = user_dict['last_interview']
                 months = self.calculate_months(last_date)
-
                 last_interview_month = months['interview_month']
 
-                if last_interview_month == months['three_months_ago']:
-                    if user_dict['status_three_months'] == 0:
-                        counts['three_months_count']['nb'] += 1
-                        counts['send_email'] += 1
-                        user_dict['email_3'] = True
-                        counts['users'].append(user_dict)
+                if last_interview_month == months['three_months_ago'] and user_dict['status_three_months'] == 0:
+                    counts['three_months_count']['nb'] += 1
+                    counts['send_email'] += 1
+                    user_dict['email_3'] = True
+                    counts['users'].append(user_dict)
 
-                elif last_interview_month == months['six_months_ago']:
-                    if user_dict['status_six_months'] == 0:
-                        counts['six_months_count']['nb'] += 1
-                        counts['send_email'] += 1
-                        user_dict['email_6'] = True
-                        counts['users'].append(user_dict)
+                elif last_interview_month == months['six_months_ago'] and user_dict['status_six_months'] == 0:
+                    counts['six_months_count']['nb'] += 1
+                    counts['send_email'] += 1
+                    user_dict['email_6'] = True
+                    counts['users'].append(user_dict)
 
-                elif last_interview_month == months['twelve_months_ago'] or months['more_than_twelve_months']:
-                    if user_dict['status_twelve_months'] == 0:
-                        counts['twelve_months_count']['nb'] += 1
-                        counts['send_email'] += 1
-                        user_dict['email_12'] = True
-                        counts['users'].append(user_dict)
+                elif ((last_interview_month == months['twelve_months_ago'] or months['more_than_twelve_months']) and
+                      user_dict['status_twelve_months'] == 0):
+                    counts['twelve_months_count']['nb'] += 1
+                    counts['send_email'] += 1
+                    user_dict['email_12'] = True
+                    counts['users'].append(user_dict)
 
                 elif last_interview_month in months['less_three_months'] or months['same_month']:
                     counts['less_three_months']['nb'] += 1
@@ -84,7 +95,6 @@ class EmailOperation:
                 elif last_interview_month in months['less_twelve_months']:
                     counts['less_twelve_months']['nb'] += 1
                     counts['dont_send_email'] += 1
-
 
             counts['three_months_count']['date'] = self.convert_month_to_name(months['three_months_ago'])
             counts['six_months_count']['date'] = self.convert_month_to_name(months['six_months_ago'])
@@ -108,51 +118,43 @@ class EmailOperation:
         return f"{month_name} {year}"
 
     def calculate_months(self, last_interview):
+        """
+        This method calculates the months between the last interview date and the current date.
+        Because we need to know if the user has been interviewed in the last 3, 6 or 12 months.
+        """
         today = date.today()
         three_months_ago = today - relativedelta(months=3)
         six_months_ago = today - relativedelta(months=6)
         twelve_months_ago = today - relativedelta(months=12)
 
-        # Parse the last interview date
         try:
             last_interview_date = datetime.strptime(last_interview, "%d/%m/%y").date()
         except ValueError as e:
             logging.error(f"EmailOpr = Date format error: {e}")
             raise
 
-        # Calculate months between 6 and 3 months ago, excluding exactly 3 months ago
         months_between_6_and_3 = []
-        current = six_months_ago + relativedelta(months=1)  # Start from the month after 6 months ago
+        current = six_months_ago + relativedelta(months=1)
         while current < three_months_ago:
             months_between_6_and_3.append(current.strftime("%m/%y"))
             current += relativedelta(months=1)
 
-        # Calculate months less than 3 months ago, excluding the current month
         months_less_than_3 = []
-        current = three_months_ago + relativedelta(months=1)  # Start from the month after 3 months ago
+        current = three_months_ago + relativedelta(months=1)
         while current < today:
             months_less_than_3.append(current.strftime("%m/%y"))
             current += relativedelta(months=1)
 
-        # Calculate months between 12 and 6 months ago, excluding exactly 6 months ago
         months_between_12_and_6 = []
-        current = twelve_months_ago + relativedelta(months=1)  # Start from the month after 12 months ago
+        current = twelve_months_ago + relativedelta(months=1)
         while current < six_months_ago:
             months_between_12_and_6.append(current.strftime("%m/%y"))
             current += relativedelta(months=1)
 
-       # Calulate if last interview is more than 12 months ago
-        current = twelve_months_ago + relativedelta(months=1)  # Start from the month after 12 months ago
-        if last_interview_date < current:
-            months_more_than_12 = True
-        else:
-            months_more_than_12 = False
+        current = twelve_months_ago + relativedelta(months=1)
+        months_more_than_12 = last_interview_date < current
 
-        # Calculate if the last interview is the same month as today
-        if last_interview_date.strftime("%m/%y") == today.strftime("%m/%y"):
-            same_month = True
-        else:
-            same_month = False
+        same_month = last_interview_date.strftime("%m/%y") == today.strftime("%m/%y")
 
         months = {
             'three_months_ago': three_months_ago.strftime("%m/%y"),
@@ -169,10 +171,12 @@ class EmailOperation:
         return months
 
     def try_send_email(self, progress_callback):
+        """
+        This method tries to send the email to the users
+        """
         try:
             all_users = self.count_users()
             users = all_users['users']
-
             if not users:
                 logging.error("EmailOpr == No data found in the database")
                 return 0
@@ -192,6 +196,9 @@ class EmailOperation:
             return False
 
     def send_email_to_user(self, user_dict):
+        """
+        This method sends the email to the user.
+        """
         global is_send
         try:
             email_sender = EmailSender()

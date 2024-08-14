@@ -4,15 +4,18 @@ from tkinter import Frame, ttk, filedialog, messagebox
 from PIL import Image, ImageTk
 import logging
 
-from app.database_page import DatabasePage
+from app.view.database_page import DatabasePage
 from app.email_operation import EmailOperation
 from app.excel_operation import ExcelOperation
-from app.parameters_page import ParametersPage
+from app.view.parameters_page import ParametersPage
 from app.database import Database
 
 
 
 class MainPage(Frame):
+    """
+    Main page of the application
+    """
     def __init__(self, parent, controller, *args, **kwargs):
         super().__init__(parent, *args, **kwargs)
 
@@ -22,7 +25,6 @@ class MainPage(Frame):
         self.excelOpr = ExcelOperation()
         self.emailOpr = EmailOperation()
         self.task_queue = queue.Queue()
-
 
         self.progress_label = ttk.Label(self, text="Progress: ")
         # Set up the main grid layout
@@ -119,7 +121,6 @@ class MainPage(Frame):
         self.tree.heading("Envoyer mail", text="Envoyer mail")
         self.tree.heading("Pas envoyer mail", text="Pas envoyer mail")
         self.tree.heading("Total e-mails envoyés", text="Total e-mails envoyés")
-
         # Set column widths (adjust according to your content)
         self.tree.column("Relance à", width=150, anchor="center")
         self.tree.column("Envoyer mail", width=200, anchor="center")
@@ -136,13 +137,14 @@ class MainPage(Frame):
             display_text = "Aucun fichier traité"
         else:
             display_text = last_path
-
-        # Mise à jour du texte du label directement
         self.file_path_label.config(text=f"Dernier fichier traité: {display_text}")
 
         return display_text
 
     def get_data(self):
+        """
+        This method is called when the user clicks the "Cherchez" button. It opens a file dialog to select an Excel file
+        """
         file_path = filedialog.askopenfilename(filetypes=[("Excel files", "*.xlsx")])
         if file_path:
             logging.info(f"Dossier ouvert: {file_path}")
@@ -151,6 +153,9 @@ class MainPage(Frame):
             self.task_queue.put((self.process_excel_file, (file_path,)))
 
     def process_excel_file(self, file_path):
+        """
+        This method processes the Excel file and call the method to insert the data into the database
+        """
         save_bdd = self.excelOpr.process_excel_file(file_path)
         if save_bdd:
             messagebox.showinfo("Information", "Les données ont été insérées avec succès.")
@@ -170,11 +175,12 @@ class MainPage(Frame):
         self.check_eligibility()
 
     def check_eligibility(self):
+        """
+        This method call the method to count the number of users and display the result in the tree view
+        """
         try:
             style = ttk.Style()
             style.configure("Blue.Foreground", foreground="blue")
-
-
             users = self.emailOpr.count_users()
             total_email = self.bdd.get_total_email_send()
             self.tree.delete(*self.tree.get_children())
@@ -217,12 +223,19 @@ class MainPage(Frame):
             self.send_email_button.config(state="disabled")
 
     def process_tasks(self):
+        """
+        Process tasks in the task queue
+        """
         while not self.task_queue.empty():
             task, args = self.task_queue.get()
             task(*args)
         self.controller.after(100, self.process_tasks)
 
     def send_emails_with_progress(self, total_emails, users):
+        """
+        This method is called when the user confirm to send email.
+        It sends emails to the users in the database
+        """
         self.progress_frame = Frame(self)
         self.progress_frame.grid(row=1, column=0, sticky="ew", padx=20, pady=10)
         self.progress = ttk.Progressbar(self.progress_frame, orient="horizontal", length=750, mode="determinate")
@@ -241,6 +254,9 @@ class MainPage(Frame):
         self.after_send_email()
 
     def confirm_send_email(self):
+        """
+        This method is called when the user clicks the "Envoyer des emails" button. It asks for confirmation before
+        """
         users = self.emailOpr.count_users()
         total_emails = users['send_email']
         if total_emails > 0:
@@ -255,6 +271,10 @@ class MainPage(Frame):
             messagebox.showinfo("Information", "Aucun email à envoyer.")
 
     def after_send_email(self):
+        """
+        This method is called after the emails have been sent.
+        It hides the progress bar and shows a message box of success
+        """
         self.progress_frame.grid_remove
         self.text_progress.grid_remove()
         self.progress.grid_remove()
