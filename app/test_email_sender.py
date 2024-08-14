@@ -21,6 +21,9 @@ def resource_path(relative_path):
 
 
 class TestEmailSender:
+	"""
+	This class is used to send test emails to the email address specified in the config file.
+	"""
 	def __init__(self, use_mailhog=False):
 		self.config = load_config()
 		self.use_mailhog = use_mailhog

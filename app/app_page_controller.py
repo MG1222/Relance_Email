@@ -1,12 +1,15 @@
 import logging
 from tkinter import Tk
 
-from app.database_page import DatabasePage
-from app.main_page import MainPage
-from app.parameters_page import ParametersPage
+from app.view.database_page import DatabasePage
+from app.view.main_page import MainPage
+from app.view.parameters_page import ParametersPage
 
 
 class AppPageController(Tk):
+    """
+    This class is the controller of the application. It manages the different pages of the application.
+    """
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.frames = {}

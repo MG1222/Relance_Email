@@ -21,6 +21,9 @@ def resource_path(relative_path):
 
 
 class EmailSender:
+    """
+    This class is responsible for sending emails to the candidates
+    """
     def __init__(self):
         self.config = load_config()
         self.use_mailhog = self.config['email_test'].get('use_mailhog', 'False').lower() in ['true', '1', 't', 'y',
@@ -74,6 +77,7 @@ class EmailSender:
             password = self.config['email']['password']
             link_calendly = self.link_calendly
 
+            # receiver_email = "aakematest@gmail.com"
             receiver_email = information['email']
             first_name = information['first_name']
             bcc_email = self.bbc_email
@@ -99,7 +103,7 @@ class EmailSender:
                                 <p>Service de recrutement <a href="mailto:{sender_email}"> <br>
                                 {sender_email} </a><p>
                                 <hr>
-                                <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px; display:block; margin:0 auto;">
+                                <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px;">
                            
                             </body>
                             </html>
@@ -144,6 +148,7 @@ class EmailSender:
             link_calendly = self.link_calendly
 
 
+            # receiver_email = "aakematest@gmail.com"
             receiver_email = information['email']
             first_name = information['first_name']
             bcc_email = self.bbc_email
@@ -169,7 +174,7 @@ class EmailSender:
                                     recrutment@groupe-trevise.fr"> <br>
                                     recrutment@groupe-trevise.fr </a><p>
                                     <hr>
-                                     <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px; display:block; margin:0 auto;">
+                                     <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px;">
                                 
                                 </body>
                                 </html>
@@ -216,6 +221,7 @@ class EmailSender:
             subject = self.email_plus_six_subject
 
 
+           # receiver_email = "aakematest@gmail.com"
             receiver_email = information['email']
             first_name = information['first_name']
             bcc_email = self.bbc_email
@@ -235,11 +241,11 @@ class EmailSender:
                                             
                                             <p>Pour planifier un entretien, veuillez utiliser notre <a href="
                                                 {link_calendly}">lien Calendly</a>.</p>
-                                            <p>Service de recrutement <a href="mailto:
+                                            <p>Service dmaine recrutement <a href="mailto:
                                             recrutment@groupe-trevise.fr"> <br>
                                             recrutment@groupe-trevise.fr </a><p>
                                             <hr>
-                                             <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px; display:block; margin:0 auto;">
+                                             <img src="cid:logo_GT" alt="logo_GT" style="width:130px; height:55px;">
                                         </p>
                                         </body>
                                         </html>

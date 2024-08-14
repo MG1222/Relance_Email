@@ -5,6 +5,8 @@ from app.database import Database
 from tkinter import Frame, Label, Entry, Button, ttk, StringVar, Toplevel, OptionMenu, messagebox
 import tkinter as tk
 
+from app.email_operation import EmailOperation
+
 
 class DatabasePage(Frame):
 
@@ -13,6 +15,7 @@ class DatabasePage(Frame):
 
         self.controller = controller
         self.bdd = Database()
+        self.email_operation = EmailOperation()
 
         self.search_by = StringVar(value="nom")
 
@@ -98,13 +101,37 @@ class DatabasePage(Frame):
         cannot_send_checkbox.grid(row=2, column=0, padx=5, pady=5, sticky="w")
 
         # Button
+        this_months_email_button = ttk.Button(filter_frame, text="Ce mois-ci Email", command=self.this_month_email)
+        this_months_email_button.grid(row=0, column=2, padx=5, pady=5, sticky="w")
         get_all_users_button = ttk.Button(filter_frame, text="Rafraîchir",
                                           command=self.get_all_users)
         get_all_users_button.grid(row=0, column=1, padx=5, pady=5, sticky="w")
         return_button = ttk.Button(filter_frame, text="Retour", command=lambda: self.controller.show_frame("MainPage"))
-        return_button.grid(row=0, column=2, padx=5, pady=5, sticky="w")
+        return_button.grid(row=3, column=2, padx=5, pady=5, sticky="w")
         checkbox_button = ttk.Button(filter_frame, text="Chercher", command=self.filter_users)
         checkbox_button.grid(row=3, column=0, padx=5, pady=5, sticky="w")
+
+
+    def this_month_email(self):
+        candidates_to_email = self.email_operation.count_users()['users']
+        self.tree.delete(*self.tree.get_children())
+        try:
+            for candidate_raw in candidates_to_email:
+                candidate = {
+                    'id': candidate_raw['id'],
+                    'last_name': candidate_raw['last_name'],
+                    'first_name': candidate_raw['first_name'],
+                    'email': candidate_raw['email'],
+                    'last_interview': candidate_raw['last_interview'],
+                    'dont_email': "Ne peut pas !" if candidate_raw['dont_email'] == 1 else "Peut envoyer"
+                }
+                self.tree.insert("", "end", values=(
+                    candidate['id'], candidate['last_name'], candidate['first_name'], candidate['email'],
+                    candidate['last_interview'], candidate['dont_email']
+                ))
+        except Exception as e:
+            messagebox.showerror("Error", f"Error: {'{'}\n{'}'.join(e.args)}")
+            logging.error(e)
 
     def update_checkboxes(self):
         if self.can_send_var.get():
